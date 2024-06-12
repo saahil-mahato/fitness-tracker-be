@@ -10,7 +10,15 @@ class DietRecommender():
     def __init__(self):
         self.filePath = os.path.abspath(os.getcwd() + '/app/diet_recommender/epi_r.csv')
         self.jsonPath = os.path.abspath(os.getcwd() + '/app/diet_recommender/full_format_recipes.json')
-        self.features = ['calories', 'protein', 'fat', 'sodium']
+        self.features = ['calories', 'protein', 'fat']
+
+        self.activityFactor = {
+            'Sedentary': 1.2,
+            'Lightly active': 1.375,
+            'Moderately active': 1.55,
+            'Very active': 1.725,
+            'Super active': 1.9
+        }
 
         self.load_data()
         self.preprocess_data()
@@ -27,9 +35,27 @@ class DietRecommender():
     def preprocess_data(self):
         self.scaler = MinMaxScaler()
         self.normalizedFeatures = self.scaler.fit_transform(self.df[self.features].values)
+
+    def calculate_nutrition(self, age, height, weight, gender, activity_level):
+        nutrition = {}
+
+        bmr = 0
+        if gender == 'male':
+            bmr = 10 * weight + 6.25 * height - 5 * age + 5
+        elif gender == 'female':
+            bmr = 10 * weight + 6.25 * height - 5 * age -161
+
+        nutrition['calories'] = bmr * self.activityFactor[activity_level]
+
+        nutrition['protein'] = 0.8 * weight
+        nutrition['fat'] = nutrition['calories']/9
+
+        return nutrition
         
-    def recommend_recipes(self, calories, protein, fat, sodium, top_n=3):
-        inputFeatures = self.scaler.transform(np.array([[calories, protein, fat, sodium]]))
+        
+    def recommend_recipes(self, age, weight, height, gender, activityLevel, top_n=3):
+        nutrition = self.calculate_nutrition(age, weight, height, gender, activityLevel)
+        inputFeatures = self.scaler.transform(np.array([[nutrition['calories'], nutrition['protein'], nutrition['fat']]]))
         cosineSimMatrix = cosine_similarity(inputFeatures, self.normalizedFeatures)
         simScores = list(enumerate(cosineSimMatrix[0]))
         simScores = sorted(simScores, key=lambda x: x[1], reverse=True)
@@ -46,7 +72,10 @@ class DietRecommender():
             recipe = next((item for item in self.recipes if item.get('title', '') == food['title']), None)
             recipeData.append(recipe)
         
-        return recipeData
+        return {
+            'recommendedNutrition': nutrition,
+            'possibleRecipes': recipeData
+        }
 
 
 dietRecommender = DietRecommender()
