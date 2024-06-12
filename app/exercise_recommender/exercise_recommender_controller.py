@@ -1,0 +1,18 @@
+from flask import Blueprint, request, jsonify
+from exercise_recommender.exercise_recommender_service import exerciseRecommender
+
+exercise_recommender_blueprint = Blueprint('exercise_recommender_blueprint', __name__)
+
+@exercise_recommender_blueprint.route('/', methods=['POST'])
+def get_recommendation():
+    exercise_preference = request.get_json()
+    if not exercise_preference or not exercise_preference['type'] or not exercise_preference['bodyPart'] or not exercise_preference['level']:
+        return jsonify({"error": "Invalid data"}), 400
+    
+    recommendation = exerciseRecommender.recommend_exercises(
+        exercise_preference['type'],
+        exercise_preference['bodyPart'],
+        exercise_preference['level']
+    ) 
+
+    return recommendation, 200
