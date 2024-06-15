@@ -26,6 +26,24 @@ class ExerciseRecommender():
         self.df['BodyPart_encoded'] = self.bodyPartEncoder.fit_transform(self.df['BodyPart'])
         self.df['Level_encoded'] = self.levelEncoder.fit_transform(self.df['Level'])
 
+    def validatePayload(self, payload):
+        hasError = False
+        errorMessages = {}
+
+        if payload['type'] not in self.rawDf['Type'].unique():
+            hasError = True
+            errorMessages['Type'] = f"{payload['type']} is not a valid type"
+
+        if payload['bodyPart'] not in self.rawDf['BodyPart'].unique():
+            hasError = True
+            errorMessages['BodyPart'] = f"{payload['bodyPart']} is not a valid body part"
+
+        if payload['level'] not in self.rawDf['Level'].unique():
+            hasError = True
+            errorMessages['Level'] = f"{payload['level']} is not a valid level"
+
+        return hasError, errorMessages
+
     def recommend_exercises(self, type, bodyPart, level, top_n=3):
         input_encoded = [
            self.typeEncoder.transform([type])[0],

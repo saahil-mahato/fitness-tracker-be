@@ -36,6 +36,33 @@ class DietRecommender():
         self.scaler = MinMaxScaler()
         self.normalizedFeatures = self.scaler.fit_transform(self.df[self.features].values)
 
+    def validate_payload(self, payload):
+        hasError = False
+        errorMessages = {}
+
+        if not isinstance(payload['age'], (int, float)) or (payload['age'] <= 0 or payload['age'] >= 100):
+            hasError = True
+            errorMessages['age'] = "Age must be a number between 0 and 100 (years)"
+
+        if not isinstance(payload['weight'], (int, float)):
+            hasError = True
+            errorMessages['weight'] = "Weight must be a number (kg)"
+
+        if not isinstance(payload['height'], (int, float)):
+            hasError = True
+            errorMessages['height'] = "Height must be a number between 0 and 300 (cms)"
+
+        if payload['gender'] not in ('male', 'female'):
+            hasError = True
+            errorMessages['gender'] = "Gender must be either 'male' or 'female'"
+
+        if payload['activityLevel'] not in self.activityFactor.keys():
+            hasError = True
+            errorMessages['activityLevel'] = "Activity Level is not valid"
+
+        return hasError, errorMessages
+        
+
     def calculate_nutrition(self, age, height, weight, gender, activity_level):
         nutrition = {}
 
@@ -51,7 +78,6 @@ class DietRecommender():
         nutrition['fat'] = nutrition['calories']/9
 
         return nutrition
-        
         
     def recommend_recipes(self, age, weight, height, gender, activityLevel, top_n=3):
         nutrition = self.calculate_nutrition(age, weight, height, gender, activityLevel)

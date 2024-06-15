@@ -5,16 +5,20 @@ diet_recommender_blueprint = Blueprint('diet_recommender_blueprint', __name__)
 
 @diet_recommender_blueprint.route('/', methods=['POST'])
 def get_recommendation():
-    bioData = request.get_json()
-    if not bioData or not bioData['age'] or not bioData['weight'] or not bioData['height'] or not bioData['gender'] or not bioData['activityLevel']:
-        return jsonify({"error": "Invalid data"}), 400
+    userHealthData = request.get_json()
+    if not userHealthData:
+        return jsonify({"error": "Empty payload"}), 400
+    
+    hasError, errorMessages = dietRecommender.validate_payload(userHealthData)
+    if hasError:
+        return jsonify(errorMessages), 400
     
     recommendation = dietRecommender.recommend_recipes(
-        age=bioData['age'],
-        weight=bioData['weight'],
-        height=bioData['height'],
-        gender=bioData['gender'],
-        activityLevel=bioData['activityLevel']
+        age=userHealthData['age'],
+        weight=userHealthData['weight'],
+        height=userHealthData['height'],
+        gender=userHealthData['gender'],
+        activityLevel=userHealthData['activityLevel']
     )
 
     return recommendation, 200
