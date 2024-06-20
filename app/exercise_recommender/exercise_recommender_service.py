@@ -100,15 +100,16 @@ class ExerciseRecommender():
             similarity = jaccard_score(list(row), input_encoded, average='macro')
             similarities.append(similarity)
 
-        tempDf = self.df.copy()
-        tempDf['similarity'] = similarities
-        tempDf['original_index'] = tempDf.index
+        self.df['similarity'] = similarities
+        similarities = None
+        self.df['original_index'] = self.df.index
         
-        maxSimilarity = tempDf['similarity'].max()
-        maxSimilarityDf = tempDf[tempDf['similarity'] == maxSimilarity]
-        maxSimilarityDf['rating'] = self.rawDf[self.rawDf.index == tempDf.index]['Rating']
+        maxSimilarity = self.df['similarity'].max()
+        maxSimilarityDf = self.df[self.df['similarity'] == maxSimilarity]
+        maxSimilarityDf['rating'] = self.rawDf[self.rawDf.index == self.df.index]['Rating']
 
         topRated = maxSimilarityDf.nlargest(3, 'rating')
+        maxSimilarityDf = None
         originalTopRated = self.rawDf.loc[list(topRated.iloc[i]['original_index'] for i in range(0, len(topRated)))]
         originalTopRated = originalTopRated.drop(columns=['Unnamed: 0']).to_dict(orient='records')
 
