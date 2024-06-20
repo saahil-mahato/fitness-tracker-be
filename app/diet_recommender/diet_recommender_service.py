@@ -29,6 +29,7 @@ class DietRecommender():
 
         with open(self.jsonPath, 'r') as file:
             self.recipes = json.load(file)
+        file.close()
 
     def validate_payload(self, payload):
         hasError = False
@@ -93,7 +94,7 @@ class DietRecommender():
             recipeData.append(recipe)
         
         self.load_data()
-        
+
         return {
             'recommendedNutrition': nutrition,
             'possibleRecipes': recipeData
