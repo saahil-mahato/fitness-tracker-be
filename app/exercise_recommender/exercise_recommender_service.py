@@ -20,6 +20,7 @@ class ExerciseRecommender():
         #chrome
         self.chrome_options = Options()
         self.chrome_options.add_argument("--headless")  # Ensure GUI is off
+        self.chrome_options.add_argument("--disable-gpu")
         self.chrome_options.add_argument("--no-sandbox")
         self.chrome_options.add_argument("--disable-dev-shm-usage")
         
@@ -94,27 +95,25 @@ class ExerciseRecommender():
            self.levelEncoder.transform([level])[0]
         ]
 
-        similarities = []
         for i in range(len(self.df)):
             row = self.df.iloc[i][['Type_encoded', 'BodyPart_encoded', 'Level_encoded']].values
             similarity = jaccard_score(list(row), input_encoded, average='macro')
-            similarities.append(similarity)
+            self.df.iloc[i]['similarity'] = similarity
 
-        self.df['similarity'] = similarities
-        similarities = None
         self.df['original_index'] = self.df.index
         
         maxSimilarity = self.df['similarity'].max()
         maxSimilarityDf = self.df[self.df['similarity'] == maxSimilarity]
         maxSimilarityDf['rating'] = self.rawDf[self.rawDf.index == self.df.index]['Rating']
 
-        topRated = maxSimilarityDf.nlargest(3, 'rating')
-        maxSimilarityDf = None
-        originalTopRated = self.rawDf.loc[list(topRated.iloc[i]['original_index'] for i in range(0, len(topRated)))]
+        maxSimilarityDf = maxSimilarityDf.nlargest(3, 'rating')
+        originalTopRated = self.rawDf.loc[list(maxSimilarityDf.iloc[i]['original_index'] for i in range(0, len(maxSimilarityDf)))]
         originalTopRated = originalTopRated.drop(columns=['Unnamed: 0']).to_dict(orient='records')
 
         for record in originalTopRated:
             record['youtube_links'] = self.get_top_youtube_videos(record['Title'])
+
+        self.load_data()
 
         return originalTopRated
 
