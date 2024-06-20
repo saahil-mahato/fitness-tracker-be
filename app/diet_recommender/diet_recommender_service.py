@@ -2,6 +2,7 @@ import os
 import json
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics.pairwise import cosine_similarity
 
 
@@ -20,6 +21,8 @@ class DietRecommender():
         }
 
         self.load_data()
+        self.scaler = MinMaxScaler()
+
 
 
     def load_data(self):
@@ -31,7 +34,7 @@ class DietRecommender():
         with open(self.jsonPath, 'r') as file:
             self.recipes = json.load(file)
         file.close()
-
+        
     def validate_payload(self, payload):
         hasError = False
         errorMessages = {}
@@ -77,9 +80,9 @@ class DietRecommender():
         
     def recommend_recipes(self, age, weight, height, gender, activityLevel, top_n=3):
         nutrition = self.calculate_nutrition(age, weight, height, gender, activityLevel)
-        inputFeatures = np.array([nutrition['calories'], nutrition['protein'], nutrition['fat']]).reshape(1, -1)
+        inputFeatures = self.scaler.fit_transform((np.array([nutrition['calories'], nutrition['protein'], nutrition['fat']]).reshape(1, -1)))
 
-        self.df['similarity'] = cosine_similarity(inputFeatures, self.df[self.features].values)[0]
+        self.df['similarity'] = cosine_similarity(inputFeatures, self.scaler.fit_transform(self.df[self.features].values))[0]
         self.df = self.df.sort_values(by=['similarity', 'rating'], ascending=[False, False])
 
         topFoods = self.df.head(top_n).to_dict(orient='records')
