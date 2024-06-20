@@ -17,6 +17,7 @@ packaging==24.1
 pandas==2.2.2
 PySocks==1.7.1
 python-dateutil==2.9.0.post0
+python-dotenv==1.0.1
 pytz==2024.1
 requests==2.32.3
 scikit-learn==1.5.0
@@ -33,5 +34,6 @@ trio-websocket==0.11.1
 typing_extensions==4.12.2
 tzdata==2024.1
 urllib3==2.2.2
+webdriver-manager==4.0.1
 Werkzeug==3.0.3
 wsproto==1.2.0

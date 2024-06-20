@@ -7,6 +7,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 
 class ExerciseRecommender():
     def __init__(self):
@@ -15,6 +16,15 @@ class ExerciseRecommender():
 
         self.load_data()
         self.preprocess_data()
+
+        #chrome
+        self.chrome_options = Options()
+        self.chrome_options.add_argument("--headless")  # Ensure GUI is off
+        self.chrome_options.add_argument("--no-sandbox")
+        self.chrome_options.add_argument("--disable-dev-shm-usage")
+        
+        # Set up the Chrome service
+        self.service = Service(ChromeDriverManager().install())
 
     def load_data(self):
         self.rawDf = pd.read_csv(self.filePath)
@@ -50,21 +60,13 @@ class ExerciseRecommender():
         return hasError, errorMessages
     
     def get_top_youtube_videos(self, exerciseTitle, max_results=5):
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")  # Ensure GUI is off
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        
-        # Set up the Chrome driver
-        driver_path = os.path.abspath(os.getcwd()) + '/app/exercise_recommender/chromedriver-linux64/chromedriver'
-        service = Service(driver_path)
-        driver = webdriver.Chrome(service=service, options=chrome_options)
-        
         # Format the query to be URL-friendly
         exerciseTitle = exerciseTitle.replace(' ', '+')
         
         # URL for YouTube search
         url = f'https://www.youtube.com/results?search_query={exerciseTitle}'
+
+        driver = webdriver.Chrome(service=self.service, options=self.chrome_options)
         
         # Load the page
         driver.get(url)
