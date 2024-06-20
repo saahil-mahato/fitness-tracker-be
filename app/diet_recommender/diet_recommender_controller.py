@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from diet_recommender.diet_recommender_service import dietRecommender
+from app.diet_recommender.diet_recommender_service import dietRecommender
 
 diet_recommender_blueprint = Blueprint('diet_recommender_blueprint', __name__)
 

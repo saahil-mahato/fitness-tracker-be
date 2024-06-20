@@ -56,7 +56,7 @@ class ExerciseRecommender():
         chrome_options.add_argument("--disable-dev-shm-usage")
         
         # Set up the Chrome driver
-        service = Service('/home/saahil/development/chromedriver-linux64/chromedriver')  # Change this to the correct path
+        service = Service(os.getcwd() + '/app/exercise_recommender/chromedriver-linux64/chromedriver')
         driver = webdriver.Chrome(service=service, options=chrome_options)
         
         # Format the query to be URL-friendly

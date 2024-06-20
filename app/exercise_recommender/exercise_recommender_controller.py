@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from exercise_recommender.exercise_recommender_service import exerciseRecommender
+from app.exercise_recommender.exercise_recommender_service import exerciseRecommender
 
 exercise_recommender_blueprint = Blueprint('exercise_recommender_blueprint', __name__)
 
