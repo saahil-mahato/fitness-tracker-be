@@ -7,8 +7,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 class DietRecommender():
     def __init__(self):
-        self.filePath = os.path.abspath(os.getcwd() + '/app/diet_recommender/epi_r.csv')
-        self.jsonPath = os.path.abspath(os.getcwd() + '/app/diet_recommender/full_format_recipes.json')
+        self.filePath = os.path.abspath(os.getcwd() + '/app/diet_recommender/recipe.csv')
+        self.jsonPath = os.path.abspath(os.getcwd() + '/app/diet_recommender/recipe.json')
         self.features = ['calories', 'protein', 'fat']
 
         self.activityFactor = {
@@ -25,7 +25,7 @@ class DietRecommender():
 
     def load_data(self):
         self.rawDf = pd.read_csv(self.filePath).loc[:, ['title', 'calories', 'fat', 'protein', 'sodium', 'rating']]
-        self.rawDf = self.rawDf.loc[self.rawDf['rating'] >= 5.0]
+        
         self.rawDf.fillna({'rating': 0.0, 'calories': 0.0, 'protein': 0.0, 'fat': 0.0}, inplace=True)
         self.rawDf.dropna(inplace=True)
         self.df = self.rawDf.copy()
@@ -88,11 +88,9 @@ class DietRecommender():
         
         recipeData = []
         for food in topFoods:
-            if food.get('title', '') == '':
-                continue
-
-            recipe = next((item for item in self.recipes if item.get('title', '') == food['title']), None)
-            recipeData.append(recipe)
+            for item in self.recipes:
+                if item and item['title'] == food['title']:
+                    recipeData.append(item)
         
         self.load_data()
 
