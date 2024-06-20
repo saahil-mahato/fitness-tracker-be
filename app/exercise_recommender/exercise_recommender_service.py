@@ -1,13 +1,10 @@
 import os
-import time
+import requests
 import pandas as pd
+import googleapiclient.discovery
+from urllib.parse import urljoin
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import jaccard_score
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 
 class ExerciseRecommender():
     def __init__(self):
@@ -17,21 +14,11 @@ class ExerciseRecommender():
         self.load_data()
         self.preprocess_data()
 
-        #chrome
-        self.chrome_options = Options()
-        self.chrome_options.add_argument("--headless")  # Ensure GUI is off
-        self.chrome_options.add_argument("--disable-gpu")
-        self.chrome_options.add_argument("--no-sandbox")
-        self.chrome_options.add_argument("--disable-dev-shm-usage")
-        
-        # Set up the Chrome service
-        self.service = Service(ChromeDriverManager().install())
-
     def load_data(self):
         self.rawDf = pd.read_csv(self.filePath)
         self.rawDf.fillna({'Rating': 0.0, 'RatingDesc': 'Low'}, inplace=True)
         self.rawDf.dropna(inplace=True)
-        self.df = self.rawDf[self.features].copy()
+        self.df = self.rawDf.copy()
 
     def preprocess_data(self):
         self.typeEncoder = LabelEncoder()
@@ -61,32 +48,32 @@ class ExerciseRecommender():
         return hasError, errorMessages
     
     def get_top_youtube_videos(self, exerciseTitle, max_results=5):
-        # Format the query to be URL-friendly
-        exerciseTitle = exerciseTitle.replace(' ', '+')
-        
-        # URL for YouTube search
-        url = f'https://www.youtube.com/results?search_query={exerciseTitle}'
+        # Replace with your YouTube Data API key
+        api_key = "AIzaSyB3ZWzahpXKXTiaw2rXalPNxcGcO3hgTuU"
 
-        driver = webdriver.Chrome(service=self.service, options=self.chrome_options)
-        
-        # Load the page
-        driver.get(url)
-        
-        # Wait for the page to load
-        time.sleep(2)
-        
-        # Find all video links
-        video_links = []
-        videos = driver.find_elements(By.XPATH, '//a[@id="video-title"]')
-        for video in videos[:max_results]:
-            video_link = video.get_attribute('href')
-            if video_link and '/watch?v=' in video_link:
-                video_links.append(video_link)
-        
-        # Close the driver
-        driver.quit()
-        
-        return video_links
+        # Create a service object for YouTube Data API v3
+        youtube = googleapiclient.discovery.build(
+            "youtube", "v3", developerKey=api_key)
+
+        # Define the search request parameters
+        request = youtube.search().list(
+            part="snippet",
+            q=exerciseTitle,
+            maxResults=max_results,
+            type="video"
+        )
+
+        # Execute the search request
+        response = request.execute()
+
+        # Extract video links from the response
+        links = []
+        for item in response['items']:
+            video_id = item['id']['videoId']
+            link = f"https://www.youtube.com/watch?v={video_id}"
+            links.append(link)
+
+        return links
 
     def recommend_exercises(self, type, bodyPart, level, top_n=3):
         input_encoded = [
@@ -103,12 +90,12 @@ class ExerciseRecommender():
             axis=1
         )
         
-        self.df[['rating', 'title']] = self.rawDf.loc[self.df.index, ['Rating', 'Title']]
-        self.df = self.df.sort_values(by=['similarity', 'rating'], ascending=[False, False])
-        topExercises = self.df.head(top_n).to_dict(orient='records')
-
+        self.df = self.df.sort_values(by=['similarity', 'Rating'], ascending=[False, False])
+        topExercises = self.df.head(top_n)
+        topExercises = topExercises.drop(columns=['BodyPart_encoded', 'Level_encoded', 'Type_encoded', 'Unnamed: 0']).to_dict(orient='records')
+        
         for record in topExercises:
-            record['youtube_links'] = self.get_top_youtube_videos(record['title'])
+            record['youtube_links'] = self.get_top_youtube_videos(record['Title'])
 
         self.load_data()
         self.preprocess_data()
