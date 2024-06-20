@@ -7,11 +7,10 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# Install the dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
 # Install Chrome
 RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
     wget \
     unzip \
     && wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
@@ -23,6 +22,9 @@ RUN apt-get update && apt-get install -y \
 RUN wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE)/chromedriver_linux64.zip \
     && unzip /tmp/chromedriver.zip -d /usr/local/bin/ \
     && rm /tmp/chromedriver.zip
+
+# Install the dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Set the environment variable to prevent Python from writing .pyc files
 ENV PYTHONDONTWRITEBYTECODE 1
