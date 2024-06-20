@@ -23,7 +23,8 @@ class DietRecommender():
 
 
     def load_data(self):
-        self.rawDf = pd.read_csv(self.filePath)
+        self.rawDf = pd.read_csv(self.filePath).loc[:, ['title', 'calories', 'fat', 'protein', 'sodium', 'rating']]
+        self.rawDf.fillna({'rating': 0.0, 'calories': 0.0, 'protein': 0.0, 'fat': 0.0}, inplace=True)
         self.rawDf.dropna(inplace=True)
         self.df = self.rawDf.copy()
 
@@ -77,13 +78,11 @@ class DietRecommender():
     def recommend_recipes(self, age, weight, height, gender, activityLevel, top_n=3):
         nutrition = self.calculate_nutrition(age, weight, height, gender, activityLevel)
         inputFeatures = np.array([nutrition['calories'], nutrition['protein'], nutrition['fat']]).reshape(1, -1)
-        similarities = cosine_similarity(inputFeatures, self.df[self.features].values)
 
-        self.df['similarity'] = similarities[0]
+        self.df['similarity'] = cosine_similarity(inputFeatures, self.df[self.features].values)[0]
         self.df = self.df.sort_values(by=['similarity', 'rating'], ascending=[False, False])
 
-        topFoods = self.df.head(top_n)
-        topFoods = topFoods.loc[:, ['title', 'calories', 'fat', 'protein', 'sodium', 'rating']].to_dict(orient='records')
+        topFoods = self.df.head(top_n).to_dict(orient='records')
         
         recipeData = []
         for food in topFoods:
