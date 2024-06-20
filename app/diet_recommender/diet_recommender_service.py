@@ -2,7 +2,6 @@ import os
 import json
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics.pairwise import cosine_similarity
 
 
@@ -21,20 +20,15 @@ class DietRecommender():
         }
 
         self.load_data()
-        self.preprocess_data()
 
 
     def load_data(self):
         self.rawDf = pd.read_csv(self.filePath)
         self.rawDf.dropna(inplace=True)
-        self.df = self.rawDf[self.features].copy()
+        self.df = self.rawDf.copy()
 
         with open(self.jsonPath, 'r') as file:
             self.recipes = json.load(file)
-    
-    def preprocess_data(self):
-        self.scaler = MinMaxScaler()
-        self.normalizedFeatures = self.scaler.fit_transform(self.df[self.features].values)
 
     def validate_payload(self, payload):
         hasError = False
@@ -81,22 +75,24 @@ class DietRecommender():
         
     def recommend_recipes(self, age, weight, height, gender, activityLevel, top_n=3):
         nutrition = self.calculate_nutrition(age, weight, height, gender, activityLevel)
-        inputFeatures = self.scaler.transform(np.array([[nutrition['calories'], nutrition['protein'], nutrition['fat']]]))
-        cosineSimMatrix = cosine_similarity(inputFeatures, self.normalizedFeatures)
-        simScores = list(enumerate(cosineSimMatrix[0]))
-        simScores = sorted(simScores, key=lambda x: x[1], reverse=True)
-        simScores = simScores[:top_n]
-        foodIndices = [i[0] for i in simScores]
-        foodData = self.rawDf.iloc[foodIndices]
-        foodData = foodData.to_dict(orient='records')
+        inputFeatures = np.array([nutrition['calories'], nutrition['protein'], nutrition['fat']]).reshape(1, -1)
+        similarities = cosine_similarity(inputFeatures, self.df[self.features].values)
 
+        self.df['similarity'] = similarities[0]
+        self.df = self.df.sort_values(by=['similarity', 'rating'], ascending=[False, False])
+
+        topFoods = self.df.head(top_n)
+        topFoods = topFoods.loc[:, ['title', 'calories', 'fat', 'protein', 'sodium', 'rating']].to_dict(orient='records')
+        
         recipeData = []
-        for food in foodData:
+        for food in topFoods:
             if food.get('title', '') == '':
                 continue
 
             recipe = next((item for item in self.recipes if item.get('title', '') == food['title']), None)
             recipeData.append(recipe)
+        
+        self.load_data()
         
         return {
             'recommendedNutrition': nutrition,
