@@ -25,6 +25,7 @@ class DietRecommender():
 
     def load_data(self):
         self.rawDf = pd.read_csv(self.filePath).loc[:, ['title', 'calories', 'fat', 'protein', 'sodium', 'rating']]
+        self.rawDf = self.rawDf.loc[self.rawDf['rating'] >= 5.0]
         self.rawDf.fillna({'rating': 0.0, 'calories': 0.0, 'protein': 0.0, 'fat': 0.0}, inplace=True)
         self.rawDf.dropna(inplace=True)
         self.df = self.rawDf.copy()
