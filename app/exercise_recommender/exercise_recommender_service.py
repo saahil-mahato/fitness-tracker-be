@@ -95,27 +95,25 @@ class ExerciseRecommender():
            self.levelEncoder.transform([level])[0]
         ]
 
-        for i in range(len(self.df)):
-            row = self.df.iloc[i][['Type_encoded', 'BodyPart_encoded', 'Level_encoded']].values
-            similarity = jaccard_score(list(row), input_encoded, average='macro')
-            self.df.iloc[i]['similarity'] = similarity
+        calculate_similarity = lambda row: jaccard_score(row, input_encoded, average='macro')
 
-        self.df['original_index'] = self.df.index
+        # Apply the function to each row and store the result in the 'similarity' column
+        self.df['similarity'] = self.df[['Type_encoded', 'BodyPart_encoded', 'Level_encoded']].apply(
+            lambda row: calculate_similarity(row),
+            axis=1
+        )
         
-        maxSimilarity = self.df['similarity'].max()
-        maxSimilarityDf = self.df[self.df['similarity'] == maxSimilarity]
-        maxSimilarityDf['rating'] = self.rawDf[self.rawDf.index == self.df.index]['Rating']
+        self.df[['rating', 'title']] = self.rawDf.loc[self.df.index, ['Rating', 'Title']]
+        self.df = self.df.sort_values(by=['similarity', 'rating'], ascending=[False, False])
+        topExercises = self.df.head(top_n).to_dict(orient='records')
 
-        maxSimilarityDf = maxSimilarityDf.nlargest(3, 'rating')
-        originalTopRated = self.rawDf.loc[list(maxSimilarityDf.iloc[i]['original_index'] for i in range(0, len(maxSimilarityDf)))]
-        originalTopRated = originalTopRated.drop(columns=['Unnamed: 0']).to_dict(orient='records')
-
-        for record in originalTopRated:
-            record['youtube_links'] = self.get_top_youtube_videos(record['Title'])
+        for record in topExercises:
+            record['youtube_links'] = self.get_top_youtube_videos(record['title'])
 
         self.load_data()
+        self.preprocess_data()
 
-        return originalTopRated
+        return topExercises
 
 
 exerciseRecommender = ExerciseRecommender()
