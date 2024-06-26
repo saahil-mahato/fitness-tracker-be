@@ -28,7 +28,6 @@ def create_app():
     
     with app.app_context():
         from app.models.user_model import User
-        from app.models.recommendations_model import Recommendations
         
         db.create_all()
 

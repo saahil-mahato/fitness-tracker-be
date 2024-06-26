@@ -1,4 +1,5 @@
 import jwt
+import json
 import datetime
 
 from flask import current_app
@@ -50,7 +51,7 @@ def update_user(userId, userData):
     user_json = {}
     columns = inspect(User).columns.keys()
     for col in columns:
-        if col in ('password', 'passwordHash') :
+        if col in ('password', 'passwordHash', 'latestExercises', 'latestDiet') :
             continue
         user_json[col] = getattr(user, col)
 
@@ -58,6 +59,7 @@ def update_user(userId, userData):
 
 def login(loginData):
     user = User.query.filter_by(username=loginData['username']).first()
+
     if not user:
         return False, "", {}, "User does not exist"
     if user.verify_password(loginData['password']):
@@ -73,7 +75,7 @@ def login(loginData):
         user_json = {}
         columns = inspect(User).columns.keys()
         for col in columns:
-            if col in ('password', 'passwordHash') :
+            if col in ('password', 'passwordHash', 'latestExercises', 'latestDiet') :
                 continue
             user_json[col] = getattr(user, col)
 
@@ -84,3 +86,45 @@ def login(loginData):
 def getUser(id):
     user = User.query.get(id)
     return user
+
+
+def addLatestExercises(userId, exercises):
+    user = getUser(userId)
+    if not user:
+        return
+
+    user.latestExercises = json.dumps(exercises)
+    
+    db.session.commit()
+
+def addLatestDiet(userId, diet):
+    user = getUser(userId)
+    if not user:
+        return
+
+    user.latestDiet = json.dumps(diet)
+    
+    db.session.commit()
+
+
+def getAllUserRecommendations():
+    users = User.query.filter(User.isTrainer == False).all()
+
+    users_json = []
+    for user in users:
+        user_dict = {
+            'id': user.id,
+            'username': user.username,
+            'firstName': user.firstName,
+            'lastName': user.lastName,
+            'age': user.age,
+            'weight': user.weight,
+            'height': user.height,
+            'gender': user.gender,
+            'activityLevel': user.activityLevel,
+            'latestExercises': json.loads(user.latestExercises) if user.latestExercises else None,
+            'latestDiet': json.loads(user.latestDiet) if user.latestDiet else None
+        }
+        users_json.append(user_dict)
+
+    return users_json

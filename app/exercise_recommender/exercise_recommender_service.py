@@ -5,7 +5,7 @@ import googleapiclient.discovery
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import jaccard_score
 
-from app.user.user_service import getUser
+from app.user.user_service import getUser, addLatestExercises
 
 
 class ExerciseRecommender():
@@ -82,7 +82,7 @@ class ExerciseRecommender():
         return links
 
 
-    def recommend_exercises(self, type, bodyPart, level, top_n=3):
+    def recommend_exercises(self, userId, type, bodyPart, level, top_n=3):
         input_encoded = [
            self.typeEncoder.transform([type])[0],
            self.bodyPartEncoder.transform([bodyPart])[0],
@@ -103,6 +103,8 @@ class ExerciseRecommender():
         
         for record in topExercises:
             record['youtube_links'] = self.get_top_youtube_videos(record['Title'])
+
+        addLatestExercises(userId, topExercises)
 
         self.load_data()
         self.preprocess_data()

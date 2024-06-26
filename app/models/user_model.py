@@ -16,6 +16,9 @@ class User(db.Model):
     isTrainer = db.Column(db.Boolean, default=False)
     passwordHash = db.Column(db.String(128), nullable=False)
 
+    latestExercises = db.Column(db.String(255), nullable=True)
+    latestDiet = db.Column(db.String(255), nullable=True)
+    
     @property
     def password(self):
         raise AttributeError('password is not a readable attribute')

@@ -5,7 +5,7 @@ import pandas as pd
 
 from sklearn.metrics.pairwise import cosine_similarity
 
-from app.user.user_service import getUser
+from app.user.user_service import getUser, addLatestDiet
 
 class DietRecommender():
     def __init__(self):
@@ -101,13 +101,17 @@ class DietRecommender():
             for item in self.recipes:
                 if item and item['title'] == food['title']:
                     recipeData.append(item)
-        
-        self.load_data()
 
-        return True, {
+        result = {
             'recommendedDailyNutrition': nutrition,
             'possibleRecipes': recipeData
         }
+
+        addLatestDiet(userId, result)
+
+        self.load_data()
+
+        return True, result
     
 
     def update_rating(self, ratingData):

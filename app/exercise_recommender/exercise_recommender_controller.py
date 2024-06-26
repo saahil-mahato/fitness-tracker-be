@@ -3,8 +3,11 @@ from app.exercise_recommender.exercise_recommender_service import exerciseRecomm
 
 exercise_recommender_blueprint = Blueprint('exercise_recommender_blueprint', __name__)
 
-@exercise_recommender_blueprint.route('', methods=['POST'])
-def get_recommendation_controller():
+@exercise_recommender_blueprint.route('/<int:userId>', methods=['POST'])
+def get_recommendation_controller(userId):
+    if not userId:
+        return jsonify({"error": "No user Id given"}), 400
+    
     exercise_preference = request.get_json()
     if not exercise_preference:
         return jsonify({"error": "Payload is empty"}), 400
@@ -14,6 +17,7 @@ def get_recommendation_controller():
         return jsonify(errorMessages), 400
     
     recommendation = exerciseRecommender.recommend_exercises(
+        userId,
         exercise_preference['type'],
         exercise_preference['bodyPart'],
         exercise_preference['level']

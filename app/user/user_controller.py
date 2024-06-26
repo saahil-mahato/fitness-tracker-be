@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 
-from app.user.user_service import add_user, update_user, login
+from app.user.user_service import add_user, update_user, login, getAllUserRecommendations
 
 user_blueprint = Blueprint('user_blueprint', __name__)
 
@@ -13,7 +13,7 @@ def addUserController():
     isSuccess = add_user(userData)
 
     if not isSuccess:
-        jsonify({'message': 'Username already exists'}), 400
+        return jsonify({'message': 'Username already exists'}), 400
 
     return jsonify({'message': 'User created successfully'}), 201
 
@@ -27,7 +27,7 @@ def updateUserController(userId):
     isSuccess, user = update_user(userId, userData)
 
     if not isSuccess:
-        jsonify({'message': 'There was an issue. Please try again.'}), 500
+        return jsonify({'message': 'There was an issue. Please try again.'}), 500
 
     return jsonify({'message': 'User updated successfully', 'user': user}), 200
 
@@ -44,3 +44,10 @@ def loginController():
         return jsonify({'message': error,}), 400
 
     return jsonify({'message': 'Succesfully logged in', 'token': token, 'user': user}), 200
+
+
+@user_blueprint.route('/get-all-recommendations', methods=['GET'])
+def getAllRecommendationsController():
+    result = getAllUserRecommendations()
+
+    return jsonify(result), 200
