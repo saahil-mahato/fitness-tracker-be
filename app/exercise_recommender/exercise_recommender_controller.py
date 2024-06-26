@@ -3,10 +3,8 @@ from app.exercise_recommender.exercise_recommender_service import exerciseRecomm
 
 exercise_recommender_blueprint = Blueprint('exercise_recommender_blueprint', __name__)
 
-@exercise_recommender_blueprint.route('/', methods=['POST', 'OPTIONS'])
+@exercise_recommender_blueprint.route('', methods=['POST'])
 def get_recommendation_controller():
-    if request.method == 'OPTIONS':
-        return '', 200  # Respond to preflight requests
     exercise_preference = request.get_json()
     if not exercise_preference:
         return jsonify({"error": "Payload is empty"}), 400
