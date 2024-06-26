@@ -30,3 +30,10 @@ def change_rating_controller():
         return jsonify({'message': message}), 400
     
     return jsonify({'message': message}), 200
+
+
+@exercise_recommender_blueprint.route('/list', methods=['GET'])
+def get_all_exercises_controller():
+    exercises = exerciseRecommender.get_all_exercises()
+
+    return jsonify(exercises), 200

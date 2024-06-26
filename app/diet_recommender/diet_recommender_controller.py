@@ -3,6 +3,7 @@ from app.diet_recommender.diet_recommender_service import dietRecommender
 
 diet_recommender_blueprint = Blueprint('diet_recommender_blueprint', __name__)
 
+
 @diet_recommender_blueprint.route('/<int:userId>', methods=['GET'])
 def get_recommendation_controller(userId):
     if not userId:
@@ -15,6 +16,7 @@ def get_recommendation_controller(userId):
 
     return result, 200
 
+
 @diet_recommender_blueprint.route('/rate', methods=['PUT'])
 def change_rating_controller():
     ratingData = request.get_json()
@@ -25,3 +27,9 @@ def change_rating_controller():
     
     return jsonify({'message': message}), 200
 
+
+@diet_recommender_blueprint.route('/list', methods=['GET'])
+def get_all_recipes_controller():
+    recipes = dietRecommender.get_all_recipes()
+
+    return jsonify(recipes), 200

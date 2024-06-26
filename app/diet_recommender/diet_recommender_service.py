@@ -23,6 +23,7 @@ class DietRecommender():
 
         self.load_data()
 
+
     def load_data(self):
         self.rawDf = pd.read_csv(self.filePath).loc[:, ['title', 'calories', 'fat', 'protein', 'sodium', 'rating']]
         
@@ -34,6 +35,7 @@ class DietRecommender():
             self.recipes = json.load(file)
         file.close()
         
+
     def validate_health_data(self, age, weight, height, gender, activityLevel):
         hasError = False
         errorMessages = {}
@@ -60,6 +62,7 @@ class DietRecommender():
 
         return hasError, errorMessages
 
+
     def calculate_nutrition(self, age, height, weight, gender, activity_level):
         nutrition = {}
 
@@ -76,6 +79,7 @@ class DietRecommender():
 
         return nutrition
         
+
     def recommend_recipes(self, userId, top_n=3):
         user = getUser(userId)
 
@@ -104,6 +108,7 @@ class DietRecommender():
             'possibleRecipes': recipeData
         }
     
+
     def update_rating(self, ratingData):
         user = getUser(ratingData["userId"])
         if not user.isTrainer:
@@ -116,6 +121,10 @@ class DietRecommender():
         self.load_data()
 
         return True, f"Successfully changed rating of {ratingData['title'].strip()}"
+    
+
+    def get_all_recipes(self):
+        return self.rawDf['title'].unique().tolist()
 
 
 dietRecommender = DietRecommender()

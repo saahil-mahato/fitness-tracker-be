@@ -7,6 +7,7 @@ from sklearn.metrics import jaccard_score
 
 from app.user.user_service import getUser
 
+
 class ExerciseRecommender():
     def __init__(self):
         self.filePath = os.path.abspath(os.getcwd()) + '/app/exercise_recommender/megaGymDataset.csv'
@@ -15,11 +16,13 @@ class ExerciseRecommender():
         self.load_data()
         self.preprocess_data()
 
+
     def load_data(self):
         self.rawDf = pd.read_csv(self.filePath)
         self.rawDf.fillna({'Rating': 0.0}, inplace=True)
         self.rawDf.dropna(inplace=True)
         self.df = self.rawDf.copy()
+
 
     def preprocess_data(self):
         self.typeEncoder = LabelEncoder()
@@ -29,6 +32,7 @@ class ExerciseRecommender():
         self.df['Type_encoded'] = self.typeEncoder.fit_transform(self.df['Type'])
         self.df['BodyPart_encoded'] = self.bodyPartEncoder.fit_transform(self.df['BodyPart'])
         self.df['Level_encoded'] = self.levelEncoder.fit_transform(self.df['Level'])
+
 
     def validatePayload(self, payload):
         hasError = False
@@ -48,6 +52,7 @@ class ExerciseRecommender():
 
         return hasError, errorMessages
     
+
     def get_top_youtube_videos(self, exerciseTitle, max_results=5):
         # Replace with your YouTube Data API key
         api_key = "AIzaSyB3ZWzahpXKXTiaw2rXalPNxcGcO3hgTuU"
@@ -76,6 +81,7 @@ class ExerciseRecommender():
 
         return links
 
+
     def recommend_exercises(self, type, bodyPart, level, top_n=3):
         input_encoded = [
            self.typeEncoder.transform([type])[0],
@@ -103,6 +109,7 @@ class ExerciseRecommender():
 
         return topExercises
     
+
     def update_rating(self, ratingData):
         user = getUser(ratingData["userId"])
         if not user.isTrainer:
@@ -116,6 +123,10 @@ class ExerciseRecommender():
         self.preprocess_data()
 
         return True, f"Successfully changed rating of {ratingData['title'].strip()}"
+    
+
+    def get_all_exercises(self):
+        return self.rawDf['Title'].unique().tolist()
 
 
 exerciseRecommender = ExerciseRecommender()
