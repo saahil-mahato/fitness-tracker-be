@@ -1,19 +1,10 @@
-from flask import Blueprint, request, jsonify, make_response
-from flask_cors import CORS
+from flask import Blueprint, request, jsonify
 from app.exercise_recommender.exercise_recommender_service import exerciseRecommender
 
 exercise_recommender_blueprint = Blueprint('exercise_recommender_blueprint', __name__)
-CORS(exercise_recommender_blueprint)
 
-@exercise_recommender_blueprint.route('/', methods=['POST', 'OPTIONS'])
-def get_recommendation():
-    if request.method == 'OPTIONS':
-        response = make_response()
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-        return response
-    
+@exercise_recommender_blueprint.route('/', methods=['POST'])
+def get_recommendation_controller():
     exercise_preference = request.get_json()
     if not exercise_preference:
         return jsonify({"error": "Payload is empty"}), 400

@@ -1,10 +1,8 @@
 from flask import Blueprint, request, jsonify
-from flask_cors import CORS
 
 from app.user.user_service import add_user, update_user, login
 
 user_blueprint = Blueprint('user_blueprint', __name__)
-CORS(user_blueprint)
 
 @user_blueprint.route('/add', methods=['POST'])
 def addUserController():

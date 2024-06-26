@@ -13,7 +13,7 @@ from app.user.user_controller import user_blueprint
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, supports_credentials=True)
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
     basedir = os.path.abspath(os.path.dirname(__file__))
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'app.db')
@@ -28,6 +28,7 @@ def create_app():
     
     with app.app_context():
         from app.models.user_model import User
+        from app.models.recommendations_model import Recommendations
         
         db.create_all()
 
