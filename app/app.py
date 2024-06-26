@@ -3,6 +3,8 @@ import secrets
 
 from flask import Flask
 
+from flask_cors import CORS
+
 from app.db import db
 
 from app.diet_recommender.diet_recommender_controller import diet_recommender_blueprint
@@ -11,6 +13,7 @@ from app.user.user_controller import user_blueprint
 
 def create_app():
     app = Flask(__name__)
+    CORS(app)
 
     basedir = os.path.abspath(os.path.dirname(__file__))
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'app.db')
