@@ -1,5 +1,5 @@
 import jwt
-from datetime import datetime
+import datetime
 
 from flask import current_app
 
@@ -64,7 +64,7 @@ def login(loginData):
         token = jwt.encode(
             {
                 'user_id': user.id,
-                'exp': datetime.now(datetime.UTC) + datetime.timedelta(hours=1)
+                'exp': datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1)
             },
             current_app._get_current_object().config['SECRET_KEY'],
             algorithm='HS256'
