@@ -12,7 +12,7 @@ def addUserController():
     isSuccess = add_user(userData)
 
     if not isSuccess:
-        jsonify({'message': 'There was an issue. Please try again.'}), 500
+        jsonify({'message': 'Username already exists'}), 400
 
     return jsonify({'message': 'User created successfully'}), 201
 

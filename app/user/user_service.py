@@ -9,6 +9,10 @@ from app.models.user_model import User
 from app.db import db
 
 def add_user(userData):
+    user = User.query.filter_by(username=userData['username']).first()
+    if user:
+        return False
+    
     new_user = User(
         username=userData['username'],
         firstName=userData['firstName'],
@@ -54,7 +58,9 @@ def update_user(userId, userData):
 
 def login(loginData):
     user = User.query.filter_by(username=loginData['username']).first()
-    if user and user.verify_password(loginData['password']):
+    if not user:
+        return False, "", {}, "User does not exist"
+    if user.verify_password(loginData['password']):
         token = jwt.encode(
             {
                 'user_id': user.id,
@@ -72,7 +78,8 @@ def login(loginData):
             user_json[col] = getattr(user, col)
 
         return True, token, user_json, ""
-    return False, "", {}, "Invalid username and password"
+    return False, "", {}, "Invalid password"
+
 
 def getUser(id):
     user = User.query.get(id)

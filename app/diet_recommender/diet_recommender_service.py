@@ -34,27 +34,27 @@ class DietRecommender():
             self.recipes = json.load(file)
         file.close()
         
-    def validate_payload(self, payload):
+    def validate_health_data(self, age, weight, height, gender, activityLevel):
         hasError = False
         errorMessages = {}
 
-        if not isinstance(payload['age'], (int, float)) or (payload['age'] <= 0 or payload['age'] >= 100):
+        if not isinstance(age, (int, float)) or (age <= 0 or age >= 100):
             hasError = True
             errorMessages['age'] = "Age must be a number between 0 and 100 (years)"
 
-        if not isinstance(payload['weight'], (int, float)):
+        if not isinstance(weight, (int, float)):
             hasError = True
             errorMessages['weight'] = "Weight must be a number (kg)"
 
-        if not isinstance(payload['height'], (int, float)):
+        if not isinstance(height, (int, float)):
             hasError = True
             errorMessages['height'] = "Height must be a number between 0 and 300 (cms)"
 
-        if payload['gender'] not in ('male', 'female'):
+        if gender not in ('male', 'female'):
             hasError = True
             errorMessages['gender'] = "Gender must be either 'male' or 'female'"
 
-        if payload['activityLevel'] not in self.activityFactor.keys():
+        if activityLevel not in self.activityFactor.keys():
             hasError = True
             errorMessages['activityLevel'] = "Activity Level is not valid"
 
@@ -78,6 +78,11 @@ class DietRecommender():
         
     def recommend_recipes(self, userId, top_n=3):
         user = getUser(userId)
+
+        hasError, errorMessages = self.validate_health_data(user.age, user.weight, user.height, user.gender, user.activityLevel)
+        if hasError:
+            return False, errorMessages
+        
         nutrition = self.calculate_nutrition(user.age, user.weight, user.height, user.gender, user.activityLevel)
         inputFeatures = np.array([nutrition['calories'], nutrition['protein'], nutrition['fat']]).reshape(1, -1)
 
@@ -94,7 +99,7 @@ class DietRecommender():
         
         self.load_data()
 
-        return {
+        return True, {
             'recommendedDailyNutrition': nutrition,
             'possibleRecipes': recipeData
         }

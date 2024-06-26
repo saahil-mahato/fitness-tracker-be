@@ -8,9 +8,12 @@ def get_recommendation_controller(userId):
     if not userId:
         return jsonify({"error": "No user Id given"}), 400
     
-    recommendation = dietRecommender.recommend_recipes(userId)
+    isSuccess, result = dietRecommender.recommend_recipes(userId)
 
-    return recommendation, 200
+    if not isSuccess:
+        return result, 400
+
+    return result, 200
 
 @diet_recommender_blueprint.route('/rate', methods=['PUT'])
 def change_rating_controller():
