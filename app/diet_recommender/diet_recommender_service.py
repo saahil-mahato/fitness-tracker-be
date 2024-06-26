@@ -2,8 +2,10 @@ import os
 import json
 import numpy as np
 import pandas as pd
+
 from sklearn.metrics.pairwise import cosine_similarity
 
+from app.user.user_service import getUser
 
 class DietRecommender():
     def __init__(self):
@@ -20,8 +22,6 @@ class DietRecommender():
         }
 
         self.load_data()
-
-
 
     def load_data(self):
         self.rawDf = pd.read_csv(self.filePath).loc[:, ['title', 'calories', 'fat', 'protein', 'sodium', 'rating']]
@@ -59,7 +59,6 @@ class DietRecommender():
             errorMessages['activityLevel'] = "Activity Level is not valid"
 
         return hasError, errorMessages
-        
 
     def calculate_nutrition(self, age, height, weight, gender, activity_level):
         nutrition = {}
@@ -77,8 +76,9 @@ class DietRecommender():
 
         return nutrition
         
-    def recommend_recipes(self, age, weight, height, gender, activityLevel, top_n=3):
-        nutrition = self.calculate_nutrition(age, weight, height, gender, activityLevel)
+    def recommend_recipes(self, userId, top_n=3):
+        user = getUser(userId)
+        nutrition = self.calculate_nutrition(user.age, user.weight, user.height, user.gender, user.activityLevel)
         inputFeatures = np.array([nutrition['calories'], nutrition['protein'], nutrition['fat']]).reshape(1, -1)
 
         self.df['similarity'] = cosine_similarity(inputFeatures, self.df[self.features].values)[0]
@@ -98,6 +98,19 @@ class DietRecommender():
             'recommendedDailyNutrition': nutrition,
             'possibleRecipes': recipeData
         }
+    
+    def update_rating(self, ratingData):
+        user = getUser(ratingData["userId"])
+        if not user.isTrainer:
+            return False, "User doesn't have permission"
+        
+        self.rawDf.loc[self.rawDf['title'].str.strip() == ratingData['title'].strip(), 'rating'] = ratingData['rating']
+
+        self.rawDf.to_csv(self.filePath, index=False)
+
+        self.load_data()
+
+        return True, f"Successfully changed rating of {ratingData['title'].strip()}"
 
 
 dietRecommender = DietRecommender()

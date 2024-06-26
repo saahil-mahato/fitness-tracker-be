@@ -1,10 +1,11 @@
 import os
-import requests
 import pandas as pd
 import googleapiclient.discovery
-from urllib.parse import urljoin
+
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import jaccard_score
+
+from app.user.user_service import getUser
 
 class ExerciseRecommender():
     def __init__(self):
@@ -16,7 +17,7 @@ class ExerciseRecommender():
 
     def load_data(self):
         self.rawDf = pd.read_csv(self.filePath)
-        self.rawDf.fillna({'Rating': 0.0, 'RatingDesc': 'Low'}, inplace=True)
+        self.rawDf.fillna({'Rating': 0.0}, inplace=True)
         self.rawDf.dropna(inplace=True)
         self.df = self.rawDf.copy()
 
@@ -92,7 +93,7 @@ class ExerciseRecommender():
         
         self.df = self.df.sort_values(by=['similarity', 'Rating'], ascending=[False, False])
         topExercises = self.df.head(top_n)
-        topExercises = topExercises.drop(columns=['BodyPart_encoded', 'Level_encoded', 'Type_encoded', 'Unnamed: 0']).to_dict(orient='records')
+        topExercises = topExercises.drop(columns=['BodyPart_encoded', 'Level_encoded', 'Type_encoded']).to_dict(orient='records')
         
         for record in topExercises:
             record['youtube_links'] = self.get_top_youtube_videos(record['Title'])
@@ -101,6 +102,20 @@ class ExerciseRecommender():
         self.preprocess_data()
 
         return topExercises
+    
+    def update_rating(self, ratingData):
+        user = getUser(ratingData["userId"])
+        if not user.isTrainer:
+            return False, "User doesn't have permission"
+        
+        self.rawDf.loc[self.rawDf['Title'].str.strip() == ratingData['title'].strip(), 'Rating'] = ratingData['rating']
+
+        self.rawDf.to_csv(self.filePath, index=False)
+
+        self.load_data()
+        self.preprocess_data()
+
+        return True, f"Successfully changed rating of {ratingData['title'].strip()}"
 
 
 exerciseRecommender = ExerciseRecommender()

@@ -20,3 +20,13 @@ def get_recommendation():
     )
 
     return recommendation, 200
+
+@exercise_recommender_blueprint.route('/rate', methods=['PUT'])
+def change_rating_controller():
+    ratingData = request.get_json()
+
+    isSuccess, message =  exerciseRecommender.update_rating(ratingData)
+    if not isSuccess:
+        return jsonify({'message': message}), 400
+    
+    return jsonify({'message': message}), 200
