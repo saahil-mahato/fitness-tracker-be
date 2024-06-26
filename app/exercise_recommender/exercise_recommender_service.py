@@ -76,7 +76,7 @@ class ExerciseRecommender():
         links = []
         for item in response['items']:
             video_id = item['id']['videoId']
-            link = f"https://www.youtube.com/watch?v={video_id}"
+            link = video_id
             links.append(link)
 
         return links
