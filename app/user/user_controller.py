@@ -4,7 +4,7 @@ from app.user.user_service import add_user, update_user, login
 
 user_blueprint = Blueprint('user_blueprint', __name__)
 
-@user_blueprint.route('/add', methods=['POST', 'OPTIONS'])
+@user_blueprint.route('/add', methods=['POST'])
 def addUserController():
     userData = request.get_json()
     if not userData:
