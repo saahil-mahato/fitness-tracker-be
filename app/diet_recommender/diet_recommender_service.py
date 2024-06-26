@@ -29,6 +29,7 @@ class DietRecommender():
         
         self.rawDf.fillna({'rating': 0.0, 'calories': 0.0, 'protein': 0.0, 'fat': 0.0}, inplace=True)
         self.rawDf.dropna(inplace=True)
+        self.rawDf = self.rawDf.drop_duplicates(subset=['title'])
         self.df = self.rawDf.copy()
 
         with open(self.jsonPath, 'r') as file:
