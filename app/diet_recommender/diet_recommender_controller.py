@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify
+from flask_cors import CORS
 from app.diet_recommender.diet_recommender_service import dietRecommender
 
 diet_recommender_blueprint = Blueprint('diet_recommender_blueprint', __name__)
-
+CORS(diet_recommender_blueprint)
 
 @diet_recommender_blueprint.route('/<int:userId>', methods=['GET'])
 def get_recommendation_controller(userId):

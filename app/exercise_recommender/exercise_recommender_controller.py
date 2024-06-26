@@ -1,7 +1,9 @@
 from flask import Blueprint, request, jsonify
+from flask_cors import CORS
 from app.exercise_recommender.exercise_recommender_service import exerciseRecommender
 
 exercise_recommender_blueprint = Blueprint('exercise_recommender_blueprint', __name__)
+CORS(exercise_recommender_blueprint)
 
 @exercise_recommender_blueprint.route('/', methods=['POST'])
 def get_recommendation():
